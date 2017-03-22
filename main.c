@@ -15,6 +15,7 @@
 Stack path;
 
 int r, g, b;
+int begin_degree;
 
 int getDegrees(short gyro_sensor) {
 	int gyroReading = getGyroDegrees(gyro_sensor);
@@ -49,7 +50,7 @@ void lineFollow() {
 		setMotorSpeed(motorB, 50);
 		setMotorSpeed(motorC, 20);
 	}
-	for (int i = 1; i <= 30; ++i) {
+	for (int i = 1; i <= 15; ++i) {
 		if (isColor(S3)) {
 			setMotorSpeed(motorB, 20);
 			setMotorSpeed(motorC, 50);
@@ -71,8 +72,12 @@ boolean solveMaze() {
 			setMotorSpeed(motorC,0);
 			sleep(0.5);*/
 
-			if (getColorName(S3) == colorYellow)
-				return true;
+			int curr_deg = getDegrees(S2);
+			while (!isReverse(curr_deg, getDegrees(S2))) {
+				setMotorSpeed(motorB, 50);
+				setMotorSpeed(motorC, -50);
+			}
+			return true;
 			//return solveMaze();
 		} else if (getColorName(S3) == colorBlue) {
 			getColorRawRGB(S3, r, g, b);
@@ -92,29 +97,40 @@ boolean solveMaze() {
 			}
 			return false;
 		} else if (getColorName(S3) == colorGreen) {
+			do {
+				setMotorSpeed(motorB, 20);
+				setMotorSpeed(motorC, -20);
+			} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
+			
 			// Node
 			node curr_node;
 			curr_node.num = 0;
 			curr_node.degree = getDegrees(S2);
-			
+
+			if (IsEmpty(path)) {
+				begin_degree = curr_node.degree;
+				writeDebugStreamLine("Begin degree: %d", begin_degree);
+			}
+
 			//writeDebugStreamLine("Green: %d", curr_node.degree);
 			getColorRawRGB(S3, r, g, b);
-			writeDebugStreamLine("Green: %d %d %d", r, g, b);
+			writeDebugStreamLine("Green: %d %d %d | %d", r, g, b, curr_node.degree);
 
 			// Explore neighbors
-			while (!isReverse(curr_node.degree, getDegrees(S2))) {
+			bool has_neighbors_left;
+			do {
 				// Turn
 				boolean found_neighbor;
 				do {
 					int deg1, deg2, ddeg;
 					do {
-						setMotorSpeed(motorB, 50);
+						setMotorSpeed(motorB, 40);
 						setMotorSpeed(motorC, 50);
-						/*if (getColorName(S3) != colorGreen) {
-							setMotorSpeed(motorB, 50);
-							setMotorSpeed(motorC, 40);
+						if (getColorName(S3) != colorGreen) {
+							setMotorSpeed(motorB, 20);
+							setMotorSpeed(motorC, 50);
 							wait(0.2, seconds);
-						}*/
+						}
 					} while (getColorName(S3) == colorGreen);
 					deg1 = getDegrees(S2);
 					do {
@@ -143,34 +159,41 @@ boolean solveMaze() {
 						} while (getColorName(S3) != colorGreen);
 					}
 				} while (!found_neighbor);
-				/*do {
-					setMotorSpeed(motorB, 50);
-					setMotorSpeed(motorC, 50);
-					if (getColorName(S3) != colorGreen) {
-						setMotorSpeed(motorB, 20);
+
+				do {
+					setMotorSpeed(motorB, 20);
+					setMotorSpeed(motorC, -20);
+				} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
+
+				has_neighbors_left = !isReverse(curr_node.degree, getDegrees(S2));
+				if (has_neighbors_left) {
+					/*do {
+						setMotorSpeed(motorB, 50);
 						setMotorSpeed(motorC, 50);
-						wait(0.2, seconds);
-					}
-				} while (getColorName(S3) == colorGreen);
-				do {
-					setMotorSpeed(motorB, 0);
-					setMotorSpeed(motorC, 20);
-				} while (getColorName(S3) != colorGreen && getColorName(S3) != colorWhite);
-				do {
-					setMotorSpeed(motorB, 0);
-					setMotorSpeed(motorC, 20);
-				} while (getColorName(S3) != colorBlack);*/
-				/*do {
-					setMotorSpeed(motorB, 30);
-					setMotorSpeed(motorC, 50);
-				} while (getColorName(S3) != colorWhite);*/
-				setMotorSpeed(motorB, 50);
-				setMotorSpeed(motorC, 0);
-				sleep(0.5);
+						if (getColorName(S3) != colorGreen) {
+							setMotorSpeed(motorB, 20);
+							setMotorSpeed(motorC, 50);
+							wait(0.2, seconds);
+						}
+					} while (getColorName(S3) == colorGreen);
+					do {
+						setMotorSpeed(motorB, 0);
+						setMotorSpeed(motorC, 20);
+					} while (getColorName(S3) != colorGreen && getColorName(S3) != colorWhite);
+					do {
+						setMotorSpeed(motorB, 0);
+						setMotorSpeed(motorC, 20);
+					} while (getColorName(S3) != colorBlack);*/
+					/*do {
+						setMotorSpeed(motorB, 30);
+						setMotorSpeed(motorC, 50);
+					} while (getColorName(S3) != colorWhite);*/
+					setMotorSpeed(motorB, 50);
+					setMotorSpeed(motorC, 0);
+					sleep(0.5);
 
 
-				// Explore neighbor
-				if (!isReverse(curr_node.degree, getDegrees(S2))) {
+					// Explore neighbor
 					curr_node.num++;
 
 					for (int i = 1; i <= Top(path); ++i)
@@ -182,10 +205,17 @@ boolean solveMaze() {
 
 					Pop(&path, &curr_node);
 				}
-			}
+			} while (has_neighbors_left);
 
 			// Backtrack
-			while (getColorName(S3) != colorGreen)
+			for (int i = 1; i <= Top(path); ++i)
+				writeDebugStream("%d - ", path.T[i].num);
+			writeDebugStreamLine("Back | %d", getDegrees(S2));
+			do {
+				setMotorSpeed(motorB, 50);
+				setMotorSpeed(motorC, 50);
+			} while (getColorName(S3) == colorGreen);
+			while (!isColor(S3))
 				lineFollow();
 			return false;
 		}
@@ -195,7 +225,7 @@ boolean solveMaze() {
 void backHome() {
 	writeDebugStreamLine("Back Home");
 	node curr_node;
-	
+
 	do {
 		for (int i = 1; i < Top(path); ++i)
 			writeDebugStream("%d - ", path.T[i].num);
@@ -212,19 +242,32 @@ void backHome() {
 			setMotorSpeed(motorB, 20);
 			setMotorSpeed(motorC, -20);
 		} while (!isReverse(InfoTop(path).degree, getDegrees(S2)));
+		writeDebugStreamLine("%d", getDegrees(S2));
 		do {
 			setMotorSpeed(motorB, 50);
 			setMotorSpeed(motorC, 50);
 		} while (isColor(S3));
-				
+
 		Pop(&path, &curr_node);
 	} while (!IsEmpty(path));
+
+	do {
+		setMotorSpeed(motorB, 20);
+		setMotorSpeed(motorC, -20);
+	} while (!isReverse(begin_degree, getDegrees(S2)));
+	do {
+		setMotorSpeed(motorB, 50);
+		setMotorSpeed(motorC, 50);
+	} while (isColor(S3));
+	while (getColorName(S3) != colorGreen && getColorName(S3) != colorBlue)
+		lineFollow();
 }
 
 
 task main() {
 	clearDebugStream();
 	CreateEmpty(&path);
+	resetGyro(S2);
 
 	do {
 		setMotorSpeed(motorB, 100);
@@ -238,32 +281,15 @@ task main() {
 		setMotorSpeed(motorB, 100);
 		setMotorSpeed(motorC, 100);
 	} while (getColorName(S3) != colorBlack);
-	
-	int begin_degree = getDegrees(S2);
 
 
 	if (solveMaze()) {
 		stopAllMotors();
 		wait(1, seconds);
-		
-		
+
 		backHome();
-		
-		stopAllMotors();
-		wait(1, seconds);
-		
-		do {
-			setMotorSpeed(motorB, 20);
-			setMotorSpeed(motorC, -20);
-		} while (!isReverse(begin_degree + 90, getDegrees(S2)));
-		do {
-			setMotorSpeed(motorB, 50);
-			setMotorSpeed(motorC, 50);
-		} while (isColor(S3));
-		while (getColorName(S3) != colorGreen && getColorName(S3) != colorBlue)
-			lineFollow();
 	}
-	
+
 	switch (getColorName(S3)) {
 		case colorGreen:
 			writeDebugStreamLine("End: Green"); break;
@@ -280,4 +306,5 @@ task main() {
 		default:
 			writeDebugStreamLine("End: ???"); break;
 	}
+
 }
