@@ -58,7 +58,7 @@ bool lineFollow() {
 		setMotorSpeed(motorB, 50);
 		setMotorSpeed(motorC, 20);
 	}
-	
+
 	// Confirm color reading
 	bool isColorRead = isColor(S3);
 	for (int i = 1; i <= 15 && isColorRead; ++i) {
@@ -69,7 +69,7 @@ bool lineFollow() {
 			wait(10, milliseconds);
 		}
 	}
-	
+
 	return isColorRead;
 }
 
@@ -78,7 +78,7 @@ void turnInNode() {
 	bool found_neighbor;
 	do {
 		int orig_deg, curr_deg, deg_diff;
-		
+
 		// Center robot in green
 		do {
 			setMotorSpeed(motorB, 40);
@@ -89,7 +89,7 @@ void turnInNode() {
 				wait(0.2, seconds);
 			}
 		} while (getColorName(S3) == colorGreen);
-		
+
 		// Turn
 		orig_deg = getDegrees(S2);
 		do {
@@ -121,93 +121,108 @@ void turnInNode() {
 	} while (!found_neighbor);
 }
 
-bool exploreNeighbors(node curr_node) {
-	bool has_neighbors_left;
-	do {
-		// Turn
-		turnInNode();
-
-		// Correct orientation
-		do {
-			setMotorSpeed(motorB, 20);
-			setMotorSpeed(motorC, -20);
-		} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
-
-		has_neighbors_left = !isReverse(curr_node.degree, getDegrees(S2));
-		if (has_neighbors_left) {
-			// Explore neighbor
-			curr_node.num++;
-			for (int i = 1; i <= Top(path); ++i)
-				writeDebugStream("%d - ", path.T[i].num);
-			writeDebugStreamLine("%d", curr_node.num);
-			
-			// Slightly move to right to correct orientation
-			setMotorSpeed(motorB, 50);
-			setMotorSpeed(motorC, 0);
-			sleep(0.5);
-
-			// Recurse
-			Push(&path, curr_node);
-			if (solveMaze()) return true;
-			Pop(&path, &curr_node);
-		}
-	} while (has_neighbors_left);
-	return false;
+void victoryDance() {
+	displayTextLine(5, "Fire Found");
+	for (int i = 0; i < 4; ++i) {
+		reverse();
+		setMotorSpeed(motorA, -50);
+		wait(0.25);
+	}
 }
 
 bool solveMaze() {
+	displayTextLine(1, "Searching for Fire");
 	while (1) {
 		while (!lineFollow());
 
 		switch (getColorName(S3)) {
 			case colorYellow:
 				getColorRawRGB(S3, r, g, b);
-				writeDebugStreamLine("Yellow: %d %d %d", r, g, b);
-				
-				reverse();			
+				writeDebugStreamLine("Yellow: %d %d %d, %d", r, g, b, getColorHue(S3));
+
+				victoryDance();
+				reverse();
 				return true;
 				break;
-				
+
 			case colorBlue:
 				getColorRawRGB(S3, r, g, b);
-				writeDebugStreamLine("Blue: %d %d %d", r, g, b);
-				
+				writeDebugStreamLine("Blue: %d %d %d, %d", r, g, b, getColorHue(S3));
+
 				return false;
 				break;
-				
+
 			case colorRed:
 				getColorRawRGB(S3, r, g, b);
-				writeDebugStreamLine("Red: %d %d %d", r, g, b);
-				
+				writeDebugStreamLine("Red: %d %d %d, %d", r, g, b, getColorHue(S3));
+
 				// Backtrack
 				reverse();
 				while (getColorName(S3) != colorGreen)
 					lineFollow();
 				return false;
 				break;
-				
+
 			case colorGreen:
 				// Correct orientation
 				do {
 					setMotorSpeed(motorB, 20);
 					setMotorSpeed(motorC, -20);
 				} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
-				
+
 				// Record current node
 				node curr_node;
 				curr_node.num = 0;
 				curr_node.degree = getDegrees(S2);
-				
+
 				getColorRawRGB(S3, r, g, b);
-				writeDebugStreamLine("Green: %d %d %d | %d", r, g, b, curr_node.degree);
+				writeDebugStreamLine("Green: %d %d %d, %d | %d", r, g, b, getColorHue(S3), curr_node.degree);
 				if (IsEmpty(path)) {
 					begin_degree = curr_node.degree;
 					writeDebugStreamLine("Begin degree: %d", begin_degree);
 				}
-				
+
 				// Explore neighbors
-				if (exploreNeighbors(curr_node)) return true;
-				
+				bool has_neighbors_left;
+				do {
+					// Turn
+					turnInNode();
+
+					// Correct orientation
+					do {
+						setMotorSpeed(motorB, 20);
+						setMotorSpeed(motorC, -20);
+					} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
+
+					has_neighbors_left = !isReverse(curr_node.degree, getDegrees(S2));
+					if (has_neighbors_left) {
+						// Explore neighbor
+						curr_node.num++;
+
+						// Display stuff
+						string curr_path_string = "   ", temp;
+						int i;
+						for (i = 1; i <= Top(path); ++i) {
+							StringFormat(temp, "%d ", path.T[i].num);
+							strcat(curr_path_string, temp);
+						}
+						StringFormat(temp, "%d", curr_node.num);
+						strcat(curr_path_string, temp);
+						writeDebugStreamLine("%s", curr_path_string);						
+						displayTextLine(3,curr_path_string);
+
+						// Slightly move to right to correct orientation
+						setMotorSpeed(motorB, 50);
+						setMotorSpeed(motorC, 0);
+						sleep(0.5);
+
+						// Recurse
+						Push(&path, curr_node);
+						if (solveMaze()) return true;
+						Pop(&path, &curr_node);
+					}
+				} while (has_neighbors_left);
+
 				// Backtrack
 				for (int i = 1; i <= Top(path); ++i)
 					writeDebugStream("%d - ", path.T[i].num);
@@ -225,12 +240,21 @@ bool solveMaze() {
 
 void backHome() {
 	writeDebugStreamLine("Back Home");
+	displayTextLine(1, "Back Home");
 	node curr_node;
 
 	do {
-		for (int i = 1; i < Top(path); ++i)
-			writeDebugStream("%d - ", path.T[i].num);
-		writeDebugStreamLine("%d", InfoTop(path).num);
+		// Display stuff
+		string curr_path_string = "  ", temp;
+		int i;
+		for (i = 1; i <= Top(path); ++i) {
+			StringFormat(temp, "%d ", path.T[i].num);
+			strcat(curr_path_string, temp);
+		}
+		StringFormat(temp, "%d", InfoTop(path).num);
+		strcat(curr_path_string, temp);
+		writeDebugStreamLine("%s", curr_path_string);						
+		displayTextLine(3,curr_path_string);
 
 		while (getColorName(S3) != colorGreen && getColorName(S3) != colorBlue)
 			lineFollow();
@@ -263,7 +287,6 @@ void backHome() {
 	while (getColorName(S3) != colorGreen && getColorName(S3) != colorBlue)
 		lineFollow();
 }
-
 
 task main() {
 	clearDebugStream();
@@ -307,5 +330,4 @@ task main() {
 		default:
 			writeDebugStreamLine("End: ???"); break;
 	}
-
 }
