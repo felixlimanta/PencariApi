@@ -139,14 +139,12 @@ bool solveMaze() {
 	displayTextLine(1, "Searching for Fire");
 	Queue potential_node;
 	CreateEmpty(&potential_node);
-	bool initial = true;
 	node_q temp_node_q;
 	temp_node_q.num = 1;
 	while (1) {
 		// While not Blue, Green, Red, or Blue, follow the line
 		while (!isColor(S3))
 			lineFollow();
-
 		// Found fire
 		if (getColorName(S3) == colorYellow || (getColorHue(S3) >= 30 && getColorHue(S3) <= 60)) {
 			getColorRawRGB(S3, r, g, b);
@@ -170,9 +168,6 @@ bool solveMaze() {
 			return false;
 			break;
 		} else if (getColorName(S3) == colorGreen) {
-			temp_node_q.degree = getDegrees(S2);
-			Add(&potential_node, temp_node_q);
-			temp_node_q.num += 1;
 			// Correct orientation
 			do {
 				setMotorSpeed(motorB, 20);
@@ -190,10 +185,9 @@ bool solveMaze() {
 				writeDebugStreamLine("Begin degree: %d", begin_degree);
 			}
 
-			// Explore neighbors
 			bool has_neighbors_left;
 			do {
-				// Turn
+				// Explore neighbors
 				turnInNode();
 
 				// Correct orientation
@@ -204,9 +198,6 @@ bool solveMaze() {
 
 				has_neighbors_left = !isReverse(curr_node.degree, getDegrees(S2));
 				if (has_neighbors_left) {
-					// Explore neighbor
-					curr_node.num++;
-
 					// Display stuff
 					string curr_path_string = "   ", temp;
 					int i;
@@ -224,19 +215,47 @@ bool solveMaze() {
 					setMotorSpeed(motorC, 0);
 					sleep(0.5);
 
-					// Recurse
-					Push(&path, curr_node);
-					if (solveMaze()) return true;
-					Pop(&path, &curr_node);
-				}
-				else {
-					Del(&potential_node, &temp_node_q);
+					while (!isColor(S3))
+						lineFollow();
+					if (getColorName(S3) == colorGreen) {
+						temp_node_q.degree = getDegrees(S2);
+						Add(&potential_node, temp_node_q);
+						temp_node_q.num += 1;
+					}
+					reverse();
+					while (getColorName(S3) != colorGreen)
+						lineFollow();
 				}
 			} while (has_neighbors_left);
-			
+			setMotorSpeed(motorB, 50);
+			setMotorSpeed(motorC, 50);
+			sleep(0.5);
 			reverse();
 			while (getColorName(S3) != colorGreen)
 				lineFollow();
+			Del(&potential_node, &temp_node_q);
+			if (temp_node_q.num == 1) {
+				turnInNode();
+				do {
+					setMotorSpeed(motorB, 20);
+					setMotorSpeed(motorC, -20);
+				} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
+			}
+			else if (temp_node_q.num == 2) {
+				turnInNode();
+				reverse();
+				turnInNode();
+			}
+			else {
+				turnInNode();
+				reverse();
+				turnInNode();
+				reverse();
+				turnInNode();
+			}
+			Push(&path, curr_node);
+			if (solveMaze()) return true;
+			Pop(&path, &curr_node);
 
 			/*
 			// Backtrack

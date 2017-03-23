@@ -5,8 +5,6 @@
 #ifndef queue_H
 #define queue_H
 
-#include "boolean.h"
-
 #define Nil_Q 0
 #define MaxEl_Q 20
 /* Konstanta untuk mendefinisikan address tak terdefinisi */
@@ -35,13 +33,13 @@ typedef struct {
 #define InfoHead(Q) (Q).T[(Q).HEAD]
 #define InfoTail(Q) (Q).T[(Q).TAIL]
 
-boolean IsEmpty (Queue Q)
+bool IsEmpty (Queue Q)
 /* Mengirim true jika Q kosong: lihat definisi di atas */
 {
     return (Head(Q)==Nil_Q && Tail(Q)==Nil_Q);
 }
 
-boolean IsFull (Queue Q)
+bool IsFull (Queue Q)
 /* Mengirim true jika tabel penampung elemen Q sudah penuh */
 /* yaitu mengandung elemen sebanyak MaxEl */
 {
