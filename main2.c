@@ -227,8 +227,32 @@ bool solveMaze() {
 						lineFollow();
 				}
 			} while (has_neighbors_left);
-
+			setMotorSpeed(motorB, 50);
+			setMotorSpeed(motorC, 50);
+			sleep(0.5);
+			reverse();
+			while (getColorName(S3) != colorGreen)
+				lineFollow();
 			Del(&potential_node, &temp_node_q);
+			if (temp_node_q.num == 1) {
+				turnInNode();
+				do {
+					setMotorSpeed(motorB, 20);
+					setMotorSpeed(motorC, -20);
+				} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
+			}
+			else if (temp_node_q.num == 2) {
+				turnInNode();
+				reverse();
+				turnInNode();
+			}
+			else {
+				turnInNode();
+				reverse();
+				turnInNode();
+				reverse();
+				turnInNode();
+			}
 			Push(&path, curr_node);
 			if (solveMaze()) return true;
 			Pop(&path, &curr_node);
