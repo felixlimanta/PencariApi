@@ -139,12 +139,14 @@ bool solveMaze() {
 	displayTextLine(1, "Searching for Fire");
 	Queue potential_node;
 	CreateEmpty(&potential_node);
+	bool initial = true;
 	node_q temp_node_q;
 	temp_node_q.num = 1;
 	while (1) {
 		// While not Blue, Green, Red, or Blue, follow the line
 		while (!isColor(S3))
 			lineFollow();
+
 		// Found fire
 		if (getColorName(S3) == colorYellow || (getColorHue(S3) >= 30 && getColorHue(S3) <= 60)) {
 			getColorRawRGB(S3, r, g, b);
@@ -185,9 +187,9 @@ bool solveMaze() {
 				writeDebugStreamLine("Begin degree: %d", begin_degree);
 			}
 
-			bool has_neighbors_left;
-			do {
-				// Explore neighbors
+			// Explore neighbors
+			if (initial) {
+				bool has_neighbors_left;
 				turnInNode();
 
 				// Correct orientation
@@ -195,39 +197,39 @@ bool solveMaze() {
 					setMotorSpeed(motorB, 20);
 					setMotorSpeed(motorC, -20);
 				} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
+				
+				while (getColorName(S3) != colorGreen)
+					lineFollow();
+				temp_node_q.degree = getDegrees(S2);
+				Add(&potential_node, temp_node_q);
+				temp_node_q.num += 1;
+				initial = false;
+			}
+			else {
+				temp_node_q.degree = getDegrees(S2);
+				Add(&potential_node, temp_node_q);
+				temp_node_q.num += 1;
 
-				has_neighbors_left = !isReverse(curr_node.degree, getDegrees(S2));
-				if (has_neighbors_left) {
-					// Display stuff
-					string curr_path_string = "   ", temp;
-					int i;
-					for (i = 1; i <= Top(path); ++i) {
-						StringFormat(temp, "%d ", path.T[i].num);
-						strcat(curr_path_string, temp);
-					}
-					StringFormat(temp, "%d", curr_node.num);
-					strcat(curr_path_string, temp);
-					writeDebugStreamLine("%s", curr_path_string);
-					displayTextLine(3,curr_path_string);
-
-					// Slightly move to right to correct orientation
-					setMotorSpeed(motorB, 50);
-					setMotorSpeed(motorC, 0);
-					sleep(0.5);
-
-					while (!isColor(S3))
-						lineFollow();
-					if (getColorName(S3) == colorGreen) {
-						temp_node_q.degree = getDegrees(S2);
-						Add(&potential_node, temp_node_q);
-						temp_node_q.num += 1;
-					}
-					reverse();
-					while (getColorName(S3) != colorGreen)
-						lineFollow();
-				}
-			} while (has_neighbors_left);
-
+				reverse();
+				while (getColorName(S3) != colorGreen)
+					lineFollow();
+				return false;
+			}
+		// Recurse
+			setMotorSpeed(motorB, 50);
+			setMotorSpeed(motorC, 50);
+			wait(0.5, seconds);
+			reverse();
+			// Turn
+			turnInNode();
+			// Correct orientation
+			do {
+				setMotorSpeed(motorB, 20);
+				setMotorSpeed(motorC, -20);
+			} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
+			
+			while (getColorName(S3) != colorGreen)
+				lineFollow();
 			Del(&potential_node, &temp_node_q);
 			Push(&path, curr_node);
 			if (solveMaze()) return true;
