@@ -139,8 +139,6 @@ bool solveMaze() {
 	displayTextLine(1, "Searching for Fire");
 	Queue potential_node;
 	CreateEmpty(&potential_node);
-	node_q temp_node_q;
-	temp_node_q.num = 1;
 	while (1) {
 		// While not Blue, Green, Red, or Blue, follow the line
 		while (!isColor(S3))
@@ -177,6 +175,8 @@ bool solveMaze() {
 			node curr_node;
 			curr_node.num = 0;
 			curr_node.degree = getDegrees(S2);
+			node_q temp_node_q;
+			temp_node_q.num = 0;
 
 			getColorRawRGB(S3, r, g, b);
 			writeDebugStreamLine("Green: %d %d %d, %d | %d", r, g, b, getColorHue(S3), curr_node.degree);
@@ -217,10 +217,10 @@ bool solveMaze() {
 
 					while (!isColor(S3))
 						lineFollow();
+					temp_node_q.num++;
 					if (getColorName(S3) == colorGreen) {
 						temp_node_q.degree = getDegrees(S2);
 						Add(&potential_node, temp_node_q);
-						temp_node_q.num += 1;
 					}
 					reverse();
 					while (getColorName(S3) != colorGreen)
@@ -243,15 +243,35 @@ bool solveMaze() {
 			}
 			else if (temp_node_q.num == 2) {
 				turnInNode();
+				do {
+					setMotorSpeed(motorB, 20);
+					setMotorSpeed(motorC, -20);
+				} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
 				reverse();
 				turnInNode();
+				do {
+					setMotorSpeed(motorB, 20);
+					setMotorSpeed(motorC, -20);
+				} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
 			}
 			else {
 				turnInNode();
+				do {
+					setMotorSpeed(motorB, 20);
+					setMotorSpeed(motorC, -20);
+				} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
 				reverse();
 				turnInNode();
+				do {
+					setMotorSpeed(motorB, 20);
+					setMotorSpeed(motorC, -20);
+				} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
 				reverse();
 				turnInNode();
+				do {
+					setMotorSpeed(motorB, 20);
+					setMotorSpeed(motorC, -20);
+				} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
 			}
 			Push(&path, curr_node);
 			if (solveMaze()) return true;
