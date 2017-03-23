@@ -109,10 +109,15 @@ void turnInNode() {
 			do {
 				setMotorSpeed(motorB, -30);
 				setMotorSpeed(motorC, 30);
-			} while (!isReverse((orig_deg + 270) % 360, getDegrees(S2));
+			} while (!isReverse((orig_deg + 270) % 360, getDegrees(S2)));
 			do {
-				setMotorSpeed(motorB, 20);
-				setMotorSpeed(motorC, 20);
+				setMotorSpeed(motorB, 40);
+				setMotorSpeed(motorC, 50);
+				if (getColorName(S3) == colorGreen) {
+					setMotorSpeed(motorB, 20);
+					setMotorSpeed(motorC, 50);
+					wait(0.15, seconds);
+				}
 			} while (getColorName(S3) != colorGreen);
 		}
 	} while (!found_neighbor);
@@ -123,7 +128,7 @@ void victoryDance() {
 	for (int i = 0; i < 4; ++i) {
 		reverse();
 		stopAllMotors();
-		setMotorSpeed(motorA, -50);
+		setMotorSpeed(motorA, 50 * -1 * (i % 2));
 		wait(0.25);
 	}
 }
@@ -277,13 +282,13 @@ void backHome() {
 		setMotorSpeed(motorB, 50);
 		setMotorSpeed(motorC, 50);
 	} while (isColor(S3));
-	while (getColorName(S3) != colorGreen && getColorName(S3) != colorBlue)
+	while (getColorName(S3) != colorGreen && !(getColorName(S3) == colorBlue || (getColorHue(S3) >= 160 && getColorHue(S3) <= 270)))
 		lineFollow();
 }
 
 task seeHue() {
 	while (1) {
-		writeDebugStreamLine("Hue: %d", getColorHue(S3));
+		//writeDebugStreamLine("Hue: %d", getColorHue(S3));
 		wait(0.2,seconds);
 	}
 }
