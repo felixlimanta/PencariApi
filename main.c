@@ -136,9 +136,11 @@ void victoryDance() {
 bool solveMaze() {
 	displayTextLine(1, "Searching for Fire");
 	while (1) {
+		// While not Blue, Green, Red, or Blue, follow the line
 		while (!isColor(S3))
 			lineFollow();
 
+		// Found fire
 		if (getColorName(S3) == colorYellow || (getColorHue(S3) >= 30 && getColorHue(S3) <= 60)) {
 			getColorRawRGB(S3, r, g, b);
 			writeDebugStreamLine("Yellow: %d %d %d, %d", r, g, b, getColorHue(S3));
@@ -146,10 +148,10 @@ bool solveMaze() {
 			victoryDance();
 			reverse();
 			return true;
+		// Found start again (full search done)
 		} else if (getColorName(S3) == colorBlue || (getColorHue(S3) >= 160 && getColorHue(S3) <= 270)) {
 			getColorRawRGB(S3, r, g, b);
 			writeDebugStreamLine("Blue: %d %d %d, %d", r, g, b, getColorHue(S3));
-
 			return false;
 		} else if (getColorName(S3) == colorRed) {
 			getColorRawRGB(S3, r, g, b);
@@ -294,33 +296,37 @@ task seeHue() {
 }
 
 task main() {
+	// Initialization
 	clearDebugStream();
 	CreateEmpty(&path);
 	resetGyro(S2);
 
 	StartTask(seeHue);
 
+	// Move forward until starting point (blue) is found
 	do {
 		setMotorSpeed(motorB, 100);
 		setMotorSpeed(motorC, 100);
 	} while (getColorName(S3) != colorBlue);
 
+	// Get RGB values
 	getColorRawRGB(S3, r, g, b);
 	writeDebugStreamLine("Blue: %d %d %d", r, g, b);
 
+	// Move past blue point
 	do {
 		setMotorSpeed(motorB, 100);
 		setMotorSpeed(motorC, 100);
 	} while (getColorName(S3) != colorBlack);
 
-
+	// Solve the maze
 	if (solveMaze()) {
 		stopAllMotors();
 		wait(1, seconds);
-
 		backHome();
 	}
 
+	///////////////////// DEBUG ///////////////////////////
 	switch (getColorName(S3)) {
 		case colorGreen:
 			writeDebugStreamLine("End: Green"); break;
@@ -337,4 +343,5 @@ task main() {
 		default:
 			writeDebugStreamLine("End: ???"); break;
 	}
+	/////////////////////////////////////////////////////////
 }
