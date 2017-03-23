@@ -5,8 +5,6 @@
 #ifndef stackt_H
 #define stackt_H
 
-#include "boolean.h"
-
 #define Nil 0
 #define MaxEl 20
 /* Nil adalah stack dengan elemen kosong . */
@@ -20,7 +18,7 @@ typedef int address;   /* indeks tabel */
 
 /* Contoh deklarasi variabel bertype stack dengan ciri TOP : */
 /* Versi I : dengan menyimpan tabel dan alamat top secara eksplisit*/
-typedef struct { 
+typedef struct {
 	node T[MaxEl+1]; /* tabel penyimpan elemen */
 	address TOP;  /* alamat TOP: elemen puncak */
 } Stack;
@@ -46,12 +44,12 @@ void CreateEmpty (Stack *S)
 }
 
 /* ************ Predikat Untuk test keadaan KOLEKSI ************ */
-boolean IsEmpty (Stack S)
+bool IsEmpty (Stack S)
 /* Mengirim true jika Stack kosong: lihat definisi di atas */
 {	// ALGORITMA
 	return (Top(S)==Nil);
 }
-boolean IsFull (Stack S)
+bool IsFull (Stack S)
 /* Mengirim true jika tabel penampung nilai elemen stack penuh */
 {	// ALGORITMA
 	return(Top(S)==MaxEl);
