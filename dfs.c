@@ -246,7 +246,7 @@ void backHome() {
 		// Display stuff
 		string curr_path_string = "  ", temp;
 		int i;
-		for (i = 1; i <= Top(path); ++i) {
+		for (i = 1; i < Top(path); ++i) {
 			StringFormat(temp, "%d ", path.T[i].num);
 			strcat(curr_path_string, temp);
 		}
@@ -283,15 +283,8 @@ void backHome() {
 		setMotorSpeed(motorB, 50);
 		setMotorSpeed(motorC, 50);
 	} while (isColor(S3));
-	while (getColorName(S3) != colorGreen && !(getColorName(S3) == colorBlue || (getColorHue(S3) >= 160 && getColorHue(S3) <= 270)))
+	while (getColorName(S3) != colorGreen && getColorName(S3) != colorBlue)
 		lineFollow();
-}
-
-task seeHue() {
-	while (1) {
-		//writeDebugStreamLine("Hue: %d", getColorHue(S3));
-		wait(0.2,seconds);
-	}
 }
 
 task main() {
@@ -299,8 +292,6 @@ task main() {
 	clearDebugStream();
 	CreateEmpty(&path);
 	resetGyro(S2);
-
-	StartTask(seeHue);
 
 	// Move forward until starting point (blue) is found
 	do {
