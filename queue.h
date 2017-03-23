@@ -7,15 +7,15 @@
 
 #include "boolean.h"
 
-#define Nil 0
-#define MaxEl 20
+#define Nil_Q 0
+#define MaxEl_Q 20
 /* Konstanta untuk mendefinisikan address tak terdefinisi */
 
 /* Definisi elemen dan address */
 typedef struct {
 	int num;
 	int degree;
-} node;
+} node_q;
 
 typedef int address;   /* indeks tabel */
 /* Contoh deklarasi variabel bertype Queue : */
@@ -38,7 +38,7 @@ typedef struct {
 boolean IsEmpty (Queue Q)
 /* Mengirim true jika Q kosong: lihat definisi di atas */
 {
-    return (Head(Q)==Nil && Tail(Q)==Nil);
+    return (Head(Q)==Nil_Q && Tail(Q)==Nil_Q);
 }
 
 boolean IsFull (Queue Q)
@@ -46,7 +46,7 @@ boolean IsFull (Queue Q)
 /* yaitu mengandung elemen sebanyak MaxEl */
 {
     // ALGORITMA
-    if (Tail(Q)==MaxEl) {
+    if (Tail(Q)==MaxEl_Q) {
         return (Head(Q)==1);
     }
     else {
@@ -69,7 +69,7 @@ int NBElmt (Queue Q)
             return 1;
         }
         else { // Head(Q) > Tail(Q)
-            return (MaxEl-Head(Q)+Tail(Q)+1);
+            return (MaxEl_Q-Head(Q)+Tail(Q)+1);
         }
     }
 }
@@ -83,13 +83,13 @@ void CreateEmpty (Queue * Q)
 /* Proses : Melakukan alokasi, membuat sebuah Q kosong */
 {
     // ALGORITMA
-    Head(*Q) = Nil;
-    Tail(*Q) = Nil;
+    Head(*Q) = Nil_Q;
+    Tail(*Q) = Nil_Q;
 
 }
 
 /* *** Primitif Add/Delete *** */
-void Add (Queue * Q, node X)
+void Add (Queue * Q, node_q X)
 /* Proses: Menambahkan X pada Q dengan aturan FIFO */
 /* I.S. Q mungkin kosong, tabel penampung elemen Q TIDAK penuh */
 /* F.S. X menjadi TAIL yang baru, TAIL "maju" dengan mekanisme circular buffer */
@@ -99,15 +99,15 @@ void Add (Queue * Q, node X)
         Head(*Q) = 1;
     }
     else {
-        if (Tail(*Q)==MaxEl) {
-            Tail(*Q) -= MaxEl;
+        if (Tail(*Q)==MaxEl_Q) {
+            Tail(*Q) -= MaxEl_Q;
         }
     }
     Tail(*Q)++;
     InfoTail(*Q) = X;
 }
 
-void Del (Queue * Q, node * X)
+void Del (Queue * Q, node_q * X)
 /* Proses: Menghapus X pada Q dengan aturan FIFO */
 /* I.S. Q tidak mungkin kosong */
 /* F.S. X = nilai elemen HEAD pd I.S., HEAD "maju" dengan mekanisme circular buffer;
@@ -116,12 +116,12 @@ void Del (Queue * Q, node * X)
     // ALGORITMA
     *X = InfoHead(*Q);
     if (NBElmt(*Q)==1) {
-        Head(*Q) = Nil;
-        Tail(*Q) = Nil;
+        Head(*Q) = Nil_Q;
+        Tail(*Q) = Nil_Q;
     }
     else {
-        if (Head(*Q)==MaxEl) {
-            Head(*Q)-=MaxEl;
+        if (Head(*Q)==MaxEl_Q) {
+            Head(*Q)-=MaxEl_Q;
         }
         Head(*Q)++;
     }

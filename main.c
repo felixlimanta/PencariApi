@@ -58,7 +58,6 @@ void lineFollow() {
 		setMotorSpeed(motorB, 50);
 		setMotorSpeed(motorC, 20);
 	}
-
 	// Confirm color reading
 	for (int i = 1; i <= 30; ++i) {
 		if (isColor(S3)) {
