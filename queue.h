@@ -33,13 +33,13 @@ typedef struct {
 #define InfoHead(Q) (Q).T[(Q).HEAD]
 #define InfoTail(Q) (Q).T[(Q).TAIL]
 
-bool IsEmpty (Queue Q)
+bool IsEmptyQ (Queue Q)
 /* Mengirim true jika Q kosong: lihat definisi di atas */
 {
     return (Head(Q)==Nil_Q && Tail(Q)==Nil_Q);
 }
 
-bool IsFull (Queue Q)
+bool IsFullQ (Queue Q)
 /* Mengirim true jika tabel penampung elemen Q sudah penuh */
 /* yaitu mengandung elemen sebanyak MaxEl */
 {
@@ -56,7 +56,7 @@ int NBElmt (Queue Q)
 /* Mengirimkan banyaknya elemen queue. Mengirimkan 0 jika Q kosong. */
 {
     // ALGORITMA
-    if (IsEmpty(Q)) {
+    if (IsEmptyQ(Q)) {
         return 0;
     }
     else {
@@ -93,7 +93,7 @@ void Add (Queue * Q, node_q X)
 /* F.S. X menjadi TAIL yang baru, TAIL "maju" dengan mekanisme circular buffer */
 {
     // ALGORITMA
-    if (IsEmpty(*Q)) {
+    if (IsEmptyQ(*Q)) {
         Head(*Q) = 1;
     }
     else {

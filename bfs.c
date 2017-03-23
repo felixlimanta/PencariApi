@@ -13,7 +13,7 @@
 #define TOLERANCE	15
 
 Stack path;
-Queue path_q;
+Queue potential_node;
 
 int r, g, b;
 int begin_degree;
@@ -51,6 +51,14 @@ void reverse() {
 	}
 }
 
+void turnLeftForward() {
+	int curr_deg = getDegrees(S2);
+	do {
+		setMotorSpeed(motorB, 15);
+		setMotorSpeed(motorC, 40);
+	} while (getDegrees(S2) % 90 <= curr_deg - 90)
+}
+
 void lineFollow() {
 	// Line following
 	if (getColorName(S3) == colorWhite) {
@@ -71,6 +79,60 @@ void lineFollow() {
 	}
 }
 
+void turnInNodeMirrored() {
+	bool found_neighbor;
+	do {
+		int orig_deg, curr_deg, deg_diff;
+
+		// Center robot in green
+		do {
+			setMotorSpeed(motorB, 30);
+			setMotorSpeed(motorC, 10);
+			if (getColorName(S3) != colorGreen) {
+				setMotorSpeed(motorB, 50);
+				setMotorSpeed(motorC, 20);
+				wait(0.2, seconds);
+			}
+		} while (getColorName(S3) == colorGreen);
+
+		// Turn
+		orig_deg = getDegrees(S2);
+		do {
+			setMotorSpeed(motorB, 20);
+			setMotorSpeed(motorC, 10);
+		} while (getColorName(S3) != colorGreen && getColorName(S3) != colorWhite);
+		do {
+			setMotorSpeed(motorB, 10);
+			setMotorSpeed(motorC, 20);
+
+			curr_deg = getDegrees(S2);
+			deg_diff = orig_deg - curr_deg;
+			if (deg_diff < 0)
+				deg_diff += 360;
+			found_neighbor = deg_diff >= 135 + TOLERANCE;
+		} while (getColorName(S3) != colorBlack && found_neighbor);
+
+		/*
+		// If no neighbor to the right
+		if (getColorName(S3) != colorBlack) {
+			// Correct orientation
+			do {
+				setMotorSpeed(motorB, 30);
+				setMotorSpeed(motorC, -30);
+			} while (!isReverse((orig_deg + 270) % 360, getDegrees(S2)));
+			do {
+				setMotorSpeed(motorB, 50);
+				setMotorSpeed(motorC, 40);
+				if (getColorName(S3) == colorGreen) {
+					setMotorSpeed(motorB, 50);
+					setMotorSpeed(motorC, 20);
+					wait(0.15, seconds);
+				}
+			} while (getColorName(S3) != colorGreen);
+		}
+		*/
+	} while (!found_neighbor);
+}
 
 void turnInNode() {
 	bool found_neighbor;
@@ -137,8 +199,6 @@ void victoryDance() {
 
 bool solveMaze() {
 	displayTextLine(1, "Searching for Fire");
-	Queue potential_node;
-	CreateEmpty(&potential_node);
 	while (1) {
 		// While not Blue, Green, Red, or Blue, follow the line
 		while (!isColor(S3))
@@ -199,6 +259,7 @@ bool solveMaze() {
 				has_neighbors_left = !isReverse(curr_node.degree, getDegrees(S2));
 				if (has_neighbors_left) {
 					curr_node.num++;
+					temp_node_q.num++;
 					// Display stuff
 					string curr_path_string = "   ", temp;
 					int i;
@@ -218,7 +279,6 @@ bool solveMaze() {
 
 					while (!isColor(S3))
 						lineFollow();
-					temp_node_q.num++;
 					if (getColorName(S3) == colorGreen) {
 						temp_node_q.degree = getDegrees(S2);
 						Add(&potential_node, temp_node_q);
@@ -251,39 +311,30 @@ bool solveMaze() {
 				} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
 			}
 			else if (temp_node_q.num == 2) {
-				turnInNode();
+				bool on_green = false;
+				bool pass_green = false;
 				do {
-					setMotorSpeed(motorB, 20);
-					setMotorSpeed(motorC, -20);
-				} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
-				reverse();
-				turnInNode();
-				do {
-					setMotorSpeed(motorB, 20);
-					setMotorSpeed(motorC, -20);
-				} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
+					setMotorSpeed(motorB, 30);
+					if (getColorName(S3) == colorGreen) {
+						on_green = true;
+					}
+					if (on_green) {
+						pass_green = getColorName(S3) == colorBlack;
+					}
+				} while (!pass_green)
 			}
 			else {
-				turnInNode();
+				turnInNodeMirrored();
 				do {
-					setMotorSpeed(motorB, 20);
-					setMotorSpeed(motorC, -20);
-				} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
-				reverse();
-				turnInNode();
-				do {
-					setMotorSpeed(motorB, 20);
-					setMotorSpeed(motorC, -20);
-				} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
-				reverse();
-				turnInNode();
-				do {
-					setMotorSpeed(motorB, 20);
-					setMotorSpeed(motorC, -20);
-				} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
+					setMotorSpeed(motorB, -20);
+					setMotorSpeed(motorC, 20);
+				} while (getDegrees(S2) % 45 <= TOLERANCE / 2 && getDegrees(S2) % 45 >= 45 - TOLERANCE / 2);
 			}
 			Push(&path, curr_node);
 			if (solveMaze()) return true;
+			if (IsEmptyQ(potential_node)) {
+				return false;
+			} 	
 			Pop(&path, &curr_node);
 		}
 	}
@@ -343,6 +394,7 @@ task main() {
 	// Initialization
 	clearDebugStream();
 	CreateEmpty(&path);
+	CreateEmpty(&potential_node);
 	resetGyro(S2);
 
 	// Move forward until starting point (blue) is found
@@ -365,6 +417,10 @@ task main() {
 	if (solveMaze()) {
 		stopAllMotors();
 		wait(1, seconds);
+		backHome();
+	}
+	else {
+		stopAllMotors();
 		backHome();
 	}
 
