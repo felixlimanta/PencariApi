@@ -72,7 +72,6 @@ void lineFollow() {
 	}
 }
 
-
 void turnInNode() {
 	bool found_neighbor;
 	do {
@@ -122,6 +121,59 @@ void turnInNode() {
 					wait(0.15, seconds);
 				}
 			} while (getColorName(S3) != colorGreen);
+		}
+	} while (!found_neighbor);
+}
+
+void turnInNodeMirrored() {
+	bool found_neighbor;
+	do {
+		int orig_deg, curr_deg, deg_diff;
+
+		// Center robot in green
+		do {
+			setMotorSpeed(motorB, 30);
+			setMotorSpeed(motorC, 10);
+			if (getColorName(S3) != colorGreen) {
+				setMotorSpeed(motorB, 50);
+				setMotorSpeed(motorC, 20);
+				wait(0.2, seconds);
+			}
+		} while (getColorName(S3) == colorGreen);
+
+		// Turn
+		orig_deg = getDegrees(S2);
+		do {
+			setMotorSpeed(motorB, 20);
+			setMotorSpeed(motorC, 10);
+		} while (getColorName(S3) != colorGreen && getColorName(S3) != colorWhite);
+		do {
+			setMotorSpeed(motorB, 10);
+			setMotorSpeed(motorC, 20);
+
+			curr_deg = getDegrees(S2);
+			deg_diff = orig_deg - curr_deg;
+			if (deg_diff < 0)
+				deg_diff += 360;
+			found_neighbor = deg_diff >= 135 + TOLERANCE;
+		} while (getColorName(S3) != colorBlack && found_neighbor);
+
+		// If no neighbor to the right
+		if (getColorName(S3) != colorBlack) {
+			// Correct orientation
+			do {
+				setMotorSpeed(motorB, 30);
+				setMotorSpeed(motorC, -30);
+			} while (!isReverse((orig_deg + 270) % 360, getDegrees(S2)));
+			do {
+				setMotorSpeed(motorB, 50);
+				setMotorSpeed(motorC, 40);
+				if (getColorName(S3) == colorWhite) {
+					setMotorSpeed(motorB, 50);
+					setMotorSpeed(motorC, 20);
+					wait(0.15, seconds);
+				}
+			} while (getColorName(S3) != colorWhite);
 		}
 	} while (!found_neighbor);
 }
