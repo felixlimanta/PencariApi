@@ -359,6 +359,7 @@ bool solveMaze(int* degreess, int* degreesq) {
 				setMotorSpeed(motorC, 5);
 			}
 			writeDebugStreamLine("Current degree: %d", getDegrees(S2));
+			wait(0.5);
 			writeDebugStreamLine("");
 			setMotorSpeed(motorB, 50);
 			setMotorSpeed(motorC, 50);
