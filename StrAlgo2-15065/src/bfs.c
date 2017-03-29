@@ -334,7 +334,7 @@ bool solveMaze() {
 			if (solveMaze()) return true;
 			if (IsEmptyQ(potential_node)) {
 				return false;
-			} 	
+			}
 			Pop(&path, &curr_node);
 		}
 	}
