@@ -44,6 +44,9 @@ bool isReverse(int orig, int curr_deg) {
 
 bool isEqual(int orig, int curr_deg) {
 	int diff = curr_deg - orig;
+	if (diff < -300) {
+		diff += 360;
+	}
 	return (diff >= -45 && diff <= 45);
 }
 
