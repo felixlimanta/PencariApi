@@ -20,7 +20,9 @@ int r, g, b;
 int begin_degree;
 
 int degreess[20];
+int degreesq[40];
 int ii = 1;
+int iq = 0;
 
 int getDegrees(short gyro_sensor) {
 	int gyroReading = getGyroDegrees(gyro_sensor);
@@ -47,7 +49,7 @@ bool isEqual(int orig, int curr_deg) {
 
 bool isEqualPrec(int orig, int curr_deg) {
 	int diff = curr_deg - orig;
-	return (diff >= -TOLERANCE && diff <= TOLERANCE);
+	return (diff >= -TOLERANCE/2 && diff <= TOLERANCE/2);
 }
 
 bool isColor(short color_sensor) {
@@ -200,7 +202,7 @@ void victoryDance() {
 	}
 }
 
-bool solveMaze(int* degreess) {
+bool solveMaze(int* degreess, int* degreesq) {
 	displayTextLine(1, "Searching for Fire");
 	while (1) {
 		// While not Blue, Green, Red, or Blue, follow the line
@@ -324,10 +326,11 @@ bool solveMaze(int* degreess) {
 						getColorRawRGB(S3, r, g, b);
 						writeDebugStreamLine("Red: %d %d %d, %d", r, g, b, getColorHue(S3));
 					} else if (getColorName(S3) == colorGreen) {
-						Add(&potential_node, p_node);
+						iq++;
+						degreesq[iq] = deg;
 						getColorRawRGB(S3, r, g , b);
 						writeDebugStreamLine("!!ADDED NODE, Green: %d %d %d, %d", r, g, b, getColorHue(S3));
-						writeDebugStreamLine("p_node degree: %d", p_node.degree);
+						writeDebugStreamLine("degreesq[%d]: %d", iq,  degreesq[iq]);
 						writeDebugStreamLine("");
 					}
 					// Backtrack
@@ -349,39 +352,27 @@ bool solveMaze(int* degreess) {
 			wait(0.6);
 			writeDebugStreamLine("Moving past");
 			stopAllMotors();
-			node_q next_node;
-			Del(&potential_node, &next_node);
 			writeDebugStreamLine("!!DELETED NODE");
-			writeDebugStreamLine("Current degree | next_node degree: %d | %d", getDegrees(S2), next_node.degree);
-			while (!isEqualPrec(getDegrees(S2), next_node.degree)) {
+			writeDebugStreamLine("Current degree | next_node degree: %d | %d", getDegrees(S2), degreesq[iq]);
+			while (!isEqualPrec(getDegrees(S2), degreesq[iq])) {
 				setMotorSpeed(motorB, 30);
 				setMotorSpeed(motorC, 5);
 			}
 			writeDebugStreamLine("Current degree: %d", getDegrees(S2));
 			writeDebugStreamLine("");
+			setMotorSpeed(motorB, 50);
+			setMotorSpeed(motorC, 50);
+			wait(0.3);
 			// Recurse
 			Push(&path, selected_node);
 			ii++;
 			Node = curr_node;
-			if (solveMaze(degreess)) {
+			if (solveMaze(degreess, degreesq)) {
 				return true;
 			}
 			ii--;
 
 			Pop(&path, &curr_node);
-			/*
-			// Backtrack
-			for (int i = 1; i <= Top(path); ++i)
-				writeDebugStream("%d - ", path.T[i].num);
-			writeDebugStreamLine("Back | %d", getDegrees(S2));
-			do {
-				setMotorSpeed(motorB, 50);
-				setMotorSpeed(motorC, 50);
-			} while (getColorName(S3) == colorGreen);
-			while (!isColor(S3))
-				lineFollow();
-			return false;
-			*/
 		}
 	}
 }
@@ -466,7 +457,7 @@ task main() {
 	} while (getColorName(S3) != colorBlack);
 
 	// Solve the maze
-	if (solveMaze(degreess)) {
+	if (solveMaze(degreess, degreesq)) {
 		stopAllMotors();
 		wait(1, seconds);
 		backHome(degreess);
