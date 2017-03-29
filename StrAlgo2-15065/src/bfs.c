@@ -446,6 +446,7 @@ task main() {
 	// Initialization
 	clearDebugStream();
 	CreateEmpty(&path);
+	CreateEmptyQ(&potential_node);
 	resetGyro(S2);
 
 	// Move forward until starting point (blue) is found

@@ -19,7 +19,7 @@ typedef int address;   /* indeks tabel */
 /* Contoh deklarasi variabel bertype Queue : */
 /* Versi I : tabel dinamik, Head dan Tail eksplisit, ukuran disimpan */
 typedef struct {
-	node T[MaxEl+1]; /* tabel penyimpan elemen */
+	node_q T[MaxEl_Q+1]; /* tabel penyimpan elemen */
 	address HEAD;  /* alamat TOP: elemen puncak */
 	address TAIL;
 } Queue;
@@ -73,7 +73,7 @@ int NBElmt (Queue Q)
 }
 
 /* *** Kreator *** */
-void CreateEmpty (Queue * Q)
+void CreateEmptyQ (Queue * Q)
 /* I.S. sembarang */
 /* F.S. Sebuah Q kosong terbentuk dan salah satu kondisi sbb: */
 /* Jika alokasi berhasil, Tabel memori dialokasi berukuran Max+1 */
