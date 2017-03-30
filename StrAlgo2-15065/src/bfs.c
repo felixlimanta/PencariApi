@@ -21,6 +21,7 @@ int begin_degree;
 
 int degreess[20];
 int degreesq[40];
+int paths[20];
 int ii = 1;
 int iq = 0;
 
@@ -39,7 +40,8 @@ bool isReverse(int orig, int curr_deg) {
 	int diff = curr_deg - orig;
 	if (diff < 0)
 		diff += 360;
-	return (diff >= 180 - TOLERANCE && diff <= 180 + TOLERANCE);
+	//return (diff >= 180 - TOLERANCE && diff <= 180 + TOLERANCE);
+	return (diff == 180);
 }
 
 bool isEqual(int orig, int curr_deg) {
@@ -119,7 +121,7 @@ void turnInNode() {
 			deg_diff = orig_deg - curr_deg;
 			if (deg_diff < 0)
 				deg_diff += 360;
-			found_neighbor = deg_diff <= 135 + TOLERANCE;
+			found_neighbor = deg_diff <= 150 + TOLERANCE;
 		} while (getColorName(S3) != colorBlack && found_neighbor);
 
 		// If no neighbor to the left
@@ -238,10 +240,10 @@ bool solveMaze(int* degreess, int* degreesq) {
 		} else if (getColorName(S3) == colorGreen) {
 			// Correct orientation
 			int start_degree;
-			do {
-				setMotorSpeed(motorB, 20);
-				setMotorSpeed(motorC, -20);
-			} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
+			// do {
+				// setMotorSpeed(motorB, 20);
+				// setMotorSpeed(motorC, -20);
+			// } while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
 
 			// Record current node
 			start_degree = getDegrees(S2);
@@ -253,6 +255,7 @@ bool solveMaze(int* degreess, int* degreesq) {
 			curr_node.degree = getDegrees(S2);
 			selected_node.degree = getDegrees(S2);
 			degreess[ii] = getDegrees(S2);
+			paths[ii] = 0;
 			writeDebugStreamLine("%d %d %d %d",getDegrees(S2), curr_node.degree, degreess[ii]);
 
 			getColorRawRGB(S3, r, g, b);
@@ -290,18 +293,17 @@ bool solveMaze(int* degreess, int* degreesq) {
 				if (has_neighbors_left) {
 					// Explore neighbor
 					curr_node.num++;
+					paths[ii]++;
 
 					p_node.num = curr_node.num;
 
 					// Display stuff
 					string curr_path_string = "   ", temp;
 					int i;
-					for (i = 1; i <= Top(path); ++i) {
-						StringFormat(temp, "%d ", path.T[i].num);
+					for (i = 1; i <= ii; ++i) {
+						StringFormat(temp, "%d ", paths[i]);
 						strcat(curr_path_string, temp);
 					}
-					StringFormat(temp, "%d", curr_node.num);
-					strcat(curr_path_string, temp);
 					writeDebugStreamLine("%s", curr_path_string);
 					displayTextLine(3,curr_path_string);
 
@@ -395,12 +397,10 @@ void backHome(int* degreess) {
 		// Display stuff
 		string curr_path_string = "  ", temp;
 		int i;
-		for (i = 1; i < Top(path); ++i) {
-			StringFormat(temp, "%d ", path.T[i].num);
+		for (i = 1; i < ii; ++i) {
+			StringFormat(temp, "%d ", paths[i]);
 			strcat(curr_path_string, temp);
 		}
-		StringFormat(temp, "%d", InfoTop(path).num);
-		strcat(curr_path_string, temp);
 		writeDebugStreamLine("%s", curr_path_string);
 		displayTextLine(3,curr_path_string);
 
@@ -414,12 +414,23 @@ void backHome(int* degreess) {
 		do {
 			setMotorSpeed(motorB, 20);
 			setMotorSpeed(motorC, -20);
-		} while (!isReverse(InfoTop(path).degree, getDegrees(S2)));
+		} while (degreess[ii] != getDegrees(S2));
 		writeDebugStreamLine("%d %d", degreess[ii], getDegrees(S2));
-		do {
-			setMotorSpeed(motorB, 30);
-			setMotorSpeed(motorC, 30);
-		} while (getColorName(S3) == colorGreen);
+		reverse();
+		for (int i = 1; i <= 15; ++i) {
+			if (getColorName(S3) == colorWhite) {
+				setMotorSpeed(motorB, 0);
+				setMotorSpeed(motorC, 30);
+			} else {
+				setMotorSpeed(motorB, 50);
+				setMotorSpeed(motorC, 30);
+			}
+			wait(0.1);
+		}		
+		// while (getColorName(S3) != colorBlack || getColorName(S3) != colorWhite) {
+			// setMotorSpeed(motorB, 30);
+			// setMotorSpeed(motorC, 30);
+		// }
 
 		Pop(&path, &curr_node);
 		ii--;

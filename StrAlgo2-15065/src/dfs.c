@@ -223,7 +223,7 @@ bool solveMaze(int* degreess) {
 			do {
 				setMotorSpeed(motorB, 20);
 				setMotorSpeed(motorC, -20);
-			} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
+			} while (getDegrees(S2) % 15 >= TOLERANCE / 2 && getDegrees(S2) % 15 <= 15 - TOLERANCE / 2);
 
 			// Record current node
 			node curr_node;
@@ -249,7 +249,7 @@ bool solveMaze(int* degreess) {
 				do {
 					setMotorSpeed(motorB, 20);
 					setMotorSpeed(motorC, -20);
-				} while (getDegrees(S2) % 45 >= TOLERANCE / 2 && getDegrees(S2) % 45 <= 45 - TOLERANCE / 2);
+				} while (getDegrees(S2) % 15 >= TOLERANCE / 2 && getDegrees(S2) % 15 <= 15 - TOLERANCE / 2);
 
 				has_neighbors_left = !isReverse(curr_node.degree, getDegrees(S2));
 				if (has_neighbors_left) {
