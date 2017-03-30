@@ -21,7 +21,7 @@ int begin_degree;
 
 int degreess[20];
 int degreesq[40];
-int paths[20];
+string paths[40];
 int ii = 1;
 int iq = 0;
 
@@ -255,7 +255,6 @@ bool solveMaze(int* degreess, int* degreesq) {
 			curr_node.degree = getDegrees(S2);
 			selected_node.degree = getDegrees(S2);
 			degreess[ii] = getDegrees(S2);
-			paths[ii] = 0;
 			writeDebugStreamLine("%d %d %d %d",getDegrees(S2), curr_node.degree, degreess[ii]);
 
 			getColorRawRGB(S3, r, g, b);
@@ -293,17 +292,19 @@ bool solveMaze(int* degreess, int* degreesq) {
 				if (has_neighbors_left) {
 					// Explore neighbor
 					curr_node.num++;
-					paths[ii]++;
+					paths[ii] = curr_node.num;					
 
 					p_node.num = curr_node.num;
 
 					// Display stuff
 					string curr_path_string = "   ", temp;
 					int i;
-					for (i = 1; i <= ii; ++i) {
-						StringFormat(temp, "%d ", paths[i]);
+					for (i = 1; i <= Top(path); ++i) {
+						StringFormat(temp, "%d ", path.T[i].num);
 						strcat(curr_path_string, temp);
 					}
+					StringFormat(temp, "%d", curr_node.num);
+					strcat(curr_path_string, temp);
 					writeDebugStreamLine("%s", curr_path_string);
 					displayTextLine(3,curr_path_string);
 
@@ -373,7 +374,10 @@ bool solveMaze(int* degreess, int* degreesq) {
 			Push(&path, selected_node);
 			ii++;
 			Node = curr_node;
-			if (solveMaze(degreess, degreesq)) {
+			if (solveMaze(degreess, degreesq)) {	
+				for (int i = 1; i <= ii; ++i) {
+					paths[i] = path.T[i].num;
+				}
 				return true;
 			}
 			ii--;
@@ -384,12 +388,15 @@ bool solveMaze(int* degreess, int* degreesq) {
 }
 
 void backHome(int* degreess) {
-	ii--;
+	//ii--;
 	writeDebugStreamLine("Back Home");
 	displayTextLine(1, "Back Home");
 	node curr_node;
 	for (int i = 1; i <= ii; ++i)
 		writeDebugStream("%d ", degreess[i]);
+	writeDebugStreamLine("");
+	for (int i = 1; i <= ii; ++i)
+		writeDebugStream("%d ", path.T[i].num);
 	writeDebugStreamLine("");
 	//Push(&path, Node);
 
@@ -434,7 +441,7 @@ void backHome(int* degreess) {
 
 		Pop(&path, &curr_node);
 		ii--;
-	} while (!IsEmpty(path));
+	} while (ii > 0);
 
 	do {
 		setMotorSpeed(motorB, 20);
@@ -444,7 +451,7 @@ void backHome(int* degreess) {
 		setMotorSpeed(motorB, 50);
 		setMotorSpeed(motorC, 50);
 	} while (isColor(S3));
-	while (getColorName(S3) != colorGreen && getColorName(S3) != colorBlue)
+	while (getColorName(S3) != colorBlue)
 		lineFollow();
 }
 
@@ -454,6 +461,7 @@ task main() {
 	CreateEmpty(&path);
 	CreateEmptyQ(&potential_node);
 	resetGyro(S2);
+	paths[0] = "  ";
 
 	// Move forward until starting point (blue) is found
 	do {
